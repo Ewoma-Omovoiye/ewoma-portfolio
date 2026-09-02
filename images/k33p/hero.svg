@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+<rect width="800" height="500" fill="#12211f"/>
+
+<g fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1">
+<circle cx="400" cy="250" r="190"/>
+<circle cx="400" cy="250" r="145"/>
+<circle cx="400" cy="250" r="100"/>
+</g>
+<circle cx="400" cy="250" r="46" fill="#F5F1EC"/>
+<rect x="374" y="228" width="52" height="52" fill="#12211f"/>
+<path d="M390 228 v-14 a10 10 0 0 1 20 0 v14" fill="none" stroke="#F5F1EC" stroke-width="3.5"/>
+<text x="20" y="480" font-family="Arial,sans-serif" font-size="11" letter-spacing="1" fill="rgba(255,255,255,0.5)" opacity="0.6">K33P — SAMPLE PLACEHOLDER</text>
+
+</svg>

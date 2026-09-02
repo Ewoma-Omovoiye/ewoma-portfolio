@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+<rect width="800" height="500" fill="#12211f"/>
+
+<rect x="100" y="150" width="150" height="150" fill="#12211f" stroke="#F5F1EC" stroke-width="1.5"/>
+<rect x="270" y="150" width="150" height="150" fill="#F5F1EC"/>
+<rect x="440" y="150" width="150" height="150" fill="#1B2A2A"/>
+<text x="20" y="480" font-family="Arial,sans-serif" font-size="11" letter-spacing="1" fill="rgba(255,255,255,0.5)" opacity="0.6">K33P — SAMPLE PLACEHOLDER</text>
+
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+<rect width="800" height="500" fill="#F5F1EC"/>
+
+<g stroke="#0A0A0A" stroke-width="1.6" fill="none">
+<rect x="330" y="180" width="140" height="140"/>
+<line x1="330" y1="250" x2="470" y2="250"/>
+<line x1="400" y1="180" x2="400" y2="320"/>
+</g>
+<circle cx="330" cy="180" r="5" fill="#DC2626"/>
+<text x="20" y="480" font-family="Arial,sans-serif" font-size="11" letter-spacing="1" fill="#8A8A85" opacity="0.55">BENTOLABS AI — SAMPLE PLACEHOLDER</text>
+
+</svg>
