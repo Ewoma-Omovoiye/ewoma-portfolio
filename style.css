@@ -173,3 +173,6 @@ nav{isolation:isolate}
   .about-name-layer{font-size:clamp(50px,16.5vw,64px)}
   .about-intro-new{font-size:25px;min-height:230px}
 }
+
+/* Shared navigation state after scrolling */
+.home-page nav.is-scrolled,.about-page nav.is-scrolled,.case-page nav.is-scrolled,.error-page nav.is-scrolled{background:rgba(17,17,15,.84);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom-color:var(--line-dark);text-shadow:none}

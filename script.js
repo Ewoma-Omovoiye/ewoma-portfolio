@@ -140,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (progressBar) progressBar.style.transform = `scaleX(${pageProgress})`;
     progress.classList.toggle("is-visible", window.scrollY > 2);
     progress.setAttribute("aria-valuenow", String(Math.round(pageProgress * 100)));
+    nav?.classList.toggle("is-scrolled", window.scrollY > 3);
 
     updateAboutHero();
 
@@ -151,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     body.style.setProperty("--case-dim", (dim * 0.82).toFixed(3));
     body.style.setProperty("--case-copy", copy.toFixed(3));
     body.style.setProperty("--case-copy-y", `${(1 - copy) * 48}px`);
-    nav?.classList.toggle("is-scrolled", distance > 3);
   };
 
   const initialiseReveals = () => {
@@ -368,26 +368,39 @@ document.addEventListener("DOMContentLoaded", () => {
     let y = -100;
     let targetX = x;
     let targetY = y;
+    let cursorFrame = 0;
     const draw = () => {
+      cursorFrame = 0;
       x += (targetX - x) * 0.22;
       y += (targetY - y) * 0.22;
       cursor.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${cursor.classList.contains("is-visible") ? 1 : 0.72})`;
-      requestAnimationFrame(draw);
+      const isMoving = Math.abs(targetX - x) > 0.2 || Math.abs(targetY - y) > 0.2;
+      if (cursor.classList.contains("is-visible") || isMoving) cursorFrame = requestAnimationFrame(draw);
+    };
+    const requestCursorDraw = () => {
+      if (!cursorFrame) cursorFrame = requestAnimationFrame(draw);
     };
     document.addEventListener("pointermove", event => {
       targetX = event.clientX;
       targetY = event.clientY;
+      if (cursor.classList.contains("is-visible")) requestCursorDraw();
     }, { passive: true });
     targets.forEach(target => {
       target.classList.add("cursor-target");
       target.addEventListener("pointerenter", () => {
         cursor.textContent = target.classList.contains("next-project-card") ? "Next" : "View";
         cursor.classList.add("is-visible");
+        requestCursorDraw();
       });
-      target.addEventListener("pointerleave", () => cursor.classList.remove("is-visible"));
+      target.addEventListener("pointerleave", () => {
+        cursor.classList.remove("is-visible");
+        requestCursorDraw();
+      });
     });
-    window.addEventListener("blur", () => cursor.classList.remove("is-visible"));
-    draw();
+    window.addEventListener("blur", () => {
+      cursor.classList.remove("is-visible");
+      requestCursorDraw();
+    });
   };
 
   window.addEventListener("pageshow", () => {
@@ -404,6 +417,14 @@ document.addEventListener("DOMContentLoaded", () => {
   initialiseManagedVideos();
   initialiseProjectCursor();
   updateScrollState();
-  window.addEventListener("scroll", updateScrollState, { passive: true });
-  window.addEventListener("resize", updateScrollState);
+  let scrollFrame = 0;
+  const scheduleScrollUpdate = () => {
+    if (scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      updateScrollState();
+    });
+  };
+  window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
+  window.addEventListener("resize", scheduleScrollUpdate);
 });
