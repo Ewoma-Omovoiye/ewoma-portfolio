@@ -8,6 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialiseMenu = () => {
     if (!toggle || !links) return;
     const menuLinks = [...links.querySelectorAll("a")];
+    const lockPage = () => {
+      document.documentElement.classList.add("menu-open");
+      body.classList.add("menu-open");
+    };
+    const unlockPage = () => {
+      document.documentElement.classList.remove("menu-open");
+      body.classList.remove("menu-open");
+    };
     const closeMenu = ({ restoreFocus = false } = {}) => {
       toggle.setAttribute("aria-expanded", "false");
       toggle.setAttribute("aria-label", "Open menu");
@@ -15,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
       links.setAttribute("aria-hidden", "true");
       links.inert = true;
       scrim?.classList.remove("open");
-      body.classList.remove("menu-open");
+      unlockPage();
       if (restoreFocus) toggle.focus();
     };
     const openMenu = () => {
@@ -25,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
       links.setAttribute("aria-hidden", "false");
       links.inert = false;
       scrim?.classList.add("open");
-      body.classList.add("menu-open");
+      lockPage();
       menuLinks[0]?.focus();
     };
 
@@ -33,6 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
     toggle.addEventListener("click", () => toggle.getAttribute("aria-expanded") === "true" ? closeMenu({ restoreFocus: true }) : openMenu());
     scrim?.addEventListener("click", () => closeMenu({ restoreFocus: true }));
     menuLinks.forEach(link => link.addEventListener("click", () => closeMenu()));
+    document.addEventListener("touchmove", event => {
+      if (body.classList.contains("menu-open") && !links.contains(event.target)) event.preventDefault();
+    }, { passive: false });
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
         closeMenu({ restoreFocus: true });
@@ -56,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else {
         links.inert = false;
         links.removeAttribute("aria-hidden");
-        body.classList.remove("menu-open");
+        unlockPage();
       }
     };
     mobile.addEventListener?.("change", syncMenu);
@@ -92,15 +103,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const width = aboutSticky.clientWidth;
     const height = aboutSticky.clientHeight;
     const mobile = width <= 820;
-    const compact = width <= 480;
-    const finalWidth = mobile
-      ? Math.min(compact ? width * 0.64 : width * 0.5, 390)
-      : Math.min(470, Math.max(300, width * 0.31));
-    const finalHeight = mobile
-      ? Math.min(560, height * (compact ? 0.7 : 0.67))
-      : Math.min(660, height * 0.76);
+    if (mobile) {
+      ["width", "height", "left", "top"].forEach(property => aboutPortrait.style.removeProperty(property));
+      ["--about-name-first-top", "--about-name-second-top", "--about-name-front", "--about-name-back", "--about-portrait-opacity", "--about-details-opacity", "--about-details-y"].forEach(property => aboutSticky.style.removeProperty(property));
+      return;
+    }
+    const finalWidth = Math.min(470, Math.max(300, width * 0.31));
+    const finalHeight = Math.min(660, height * 0.76);
     const finalLeft = (width - finalWidth) / 2;
-    const finalTop = height * (mobile ? 0.06 : 0.07);
+    const finalTop = height * 0.07;
     const mediaWidth = lerp(width, finalWidth, layoutProgress);
     const mediaHeight = lerp(height, finalHeight, layoutProgress);
     const mediaLeft = lerp(0, finalLeft, layoutProgress);
@@ -114,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     aboutPortrait.style.left = `${mediaLeft}px`;
     aboutPortrait.style.top = `${mediaTop}px`;
     aboutSticky.style.setProperty("--about-name-first-top", `${finalTop}px`);
-    aboutSticky.style.setProperty("--about-name-second-top", `${finalTop + finalHeight * (mobile ? 0.42 : 0.4)}px`);
+    aboutSticky.style.setProperty("--about-name-second-top", `${finalTop + finalHeight * 0.4}px`);
     aboutSticky.style.setProperty("--about-name-front", String(1 - handoff));
     aboutSticky.style.setProperty("--about-name-back", String(handoff));
     aboutSticky.style.setProperty("--about-portrait-opacity", String(portraitOpacity));
@@ -123,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const updateScrollState = () => {
+    if (body.classList.contains("menu-open")) return;
     const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const pageProgress = clamp(window.scrollY / scrollable);
     if (progressBar) progressBar.style.transform = `scaleX(${pageProgress})`;
