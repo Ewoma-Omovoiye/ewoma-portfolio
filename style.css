@@ -148,6 +148,27 @@ nav{isolation:isolate}
 @media(max-width:820px){html{scroll-padding-top:70px}body:not(.case-page){padding-top:70px}nav{left:0;position:fixed;right:0;top:0;width:100%}.case-page nav{margin-bottom:0}}
 @media(prefers-reduced-motion:reduce){.site-reveal{opacity:1;transform:none;transition:none}.media-loading::before,.is-loading-media .page-progress-bar{animation:none!important}.project-cursor{display:none}.has-project-cursor .cursor-target{cursor:pointer}.home-profile-link .link-arrow,.resume-link .link-arrow,.contact-arrow,.project-caption h3::after,.error-home-link .link-arrow{transition:none}}
 
+/* K33P case study */
+.project-visual video{height:100%;object-fit:cover;width:100%}
+.k33p-case .immersive-hero{background:#1a1a1a}
+.k33p-case .immersive-media video{object-position:center}
+.k33p-identity-grid{display:grid;gap:clamp(8px,1vw,16px);grid-template-columns:1fr 1fr;padding:clamp(24px,4vw,64px)}
+.k33p-identity-panel{aspect-ratio:1/1;background:#1a1a1a;overflow:hidden}
+.k33p-identity-panel:first-child{aspect-ratio:2/1;grid-column:1/-1}
+.k33p-identity-panel img{height:100%;object-fit:cover;width:100%}
+.k33p-pattern{aspect-ratio:3/1;height:auto}
+.k33p-pattern img{object-position:center}
+.k33p-device-grid{align-items:end;background:#ffd939;display:grid;gap:clamp(12px,2.2vw,34px);grid-template-columns:repeat(4,minmax(0,1fr));padding:clamp(42px,7vw,110px) clamp(22px,5vw,84px)}
+.k33p-device-grid figure{align-items:flex-end;display:flex;justify-content:center;min-width:0}
+.k33p-device-grid img{filter:drop-shadow(0 22px 32px rgba(0,0,0,.18));height:auto;max-height:680px;object-fit:contain;width:100%}
+.k33p-case .editorial-pair .editorial-media:first-child{background:#ffd939}
+.k33p-case .editorial-pair .editorial-media:first-child img{object-fit:cover}
+.k33p-case .editorial-media--wide img{object-position:center}
+.k33p-applications .editorial-media{aspect-ratio:4/3}
+
+@media(max-width:820px){.k33p-device-grid{gap:20px;grid-template-columns:repeat(2,minmax(0,1fr));padding:46px 24px}.k33p-device-grid img{max-height:560px}.k33p-identity-grid{padding-left:18px;padding-right:18px}}
+@media(max-width:620px){.k33p-identity-grid{grid-template-columns:1fr}.k33p-identity-panel:first-child{aspect-ratio:4/3;grid-column:auto}.k33p-identity-panel{aspect-ratio:4/3}.k33p-pattern{aspect-ratio:2/1}.k33p-case .editorial-media--wide{height:auto;aspect-ratio:4/3}.k33p-applications{gap:18px;grid-template-columns:1fr;padding-left:18px;padding-right:18px}.k33p-applications .editorial-media:last-child{margin-top:0}}
+
 /* Mobile About hero: compact image-to-content blend */
 @media(max-width:820px){
   .about-page nav{background:rgba(17,17,15,.98);backdrop-filter:blur(14px)}
