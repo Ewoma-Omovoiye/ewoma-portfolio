@@ -87,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const clamp = value => Math.max(0, Math.min(1, value));
   const lerp = (start, end, amount) => start + (end - start) * amount;
-  const caseHero = document.querySelector("[data-case-hero]");
   const aboutHero = document.querySelector(".about-hero-new");
   const aboutSticky = aboutHero?.querySelector(".about-hero-sticky");
   const aboutPortrait = aboutHero?.querySelector(".about-portrait-frame");
@@ -144,7 +143,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateAboutHero();
 
+    const caseHero = document.querySelector("[data-case-hero]");
     if (!caseHero) return;
+    if (body.classList.contains("is-case-entering")) {
+      body.style.setProperty("--case-dim", "0");
+      body.style.setProperty("--case-copy", "0");
+      body.style.setProperty("--case-copy-y", "48px");
+      return;
+    }
     const heroTop = caseHero.getBoundingClientRect().top + window.scrollY;
     const distance = Math.max(0, window.scrollY - heroTop);
     const dim = clamp(distance / (window.innerHeight * 0.62));
@@ -153,6 +159,21 @@ document.addEventListener("DOMContentLoaded", () => {
     body.style.setProperty("--case-copy", copy.toFixed(3));
     body.style.setProperty("--case-copy-y", `${(1 - copy) * 48}px`);
   };
+
+  let caseEntryReady = true;
+  const unlockCaseEntry = () => {
+    if (!caseEntryReady || !body.classList.contains("is-case-entering")) return;
+    body.classList.remove("is-case-entering");
+    updateScrollState();
+  };
+  window.addEventListener("wheel", unlockCaseEntry, { passive: true });
+  window.addEventListener("touchstart", unlockCaseEntry, { passive: true });
+  window.addEventListener("keydown", event => {
+    if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) unlockCaseEntry();
+  });
+  window.addEventListener("pointerdown", event => {
+    if (event.clientX >= window.innerWidth - 24) unlockCaseEntry();
+  }, { passive: true });
 
   const initialiseReveals = () => {
     const items = document.querySelectorAll(".reveal-on-scroll, .editorial-media");
@@ -172,11 +193,167 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const initialiseProjectPreviews = () => {
+    const fetchK33PPage = async link => {
+      const cleanURL = new URL(link.href);
+      const urls = [cleanURL.href, `${cleanURL.origin}${cleanURL.pathname}.html`];
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { credentials: "same-origin" });
+          if (!response.ok) continue;
+          const page = new DOMParser().parseFromString(await response.text(), "text/html");
+          if (page.body.classList.contains("k33p-case") && page.querySelector("[data-project-hero] video")) return page;
+        } catch (_) {
+          // The normal link remains the fallback when the page cannot be fetched.
+        }
+      }
+      throw new Error("K33P page unavailable for the continuous transition");
+    };
+
+    const openK33PWithLiveVideo = async (link, visual, video, pagePromise) => {
+      const rect = visual.getBoundingClientRect();
+      const flight = document.createElement("div");
+      const startingTransform = getComputedStyle(video).transform;
+      const holdCurrentFrame = () => {
+        try {
+          if (!video.videoWidth || !video.videoHeight) return;
+          const frame = document.createElement("canvas");
+          frame.width = Math.min(video.videoWidth, 1280);
+          frame.height = Math.round(frame.width * video.videoHeight / video.videoWidth);
+          frame.getContext("2d").drawImage(video, 0, 0, frame.width, frame.height);
+          flight.style.backgroundImage = `url("${frame.toDataURL("image/jpeg", 0.88)}")`;
+          flight.style.backgroundPosition = "center";
+          flight.style.backgroundSize = "cover";
+        } catch (_) {
+          // A video frame is only a visual bridge; the live video still works without it.
+        }
+      };
+      let resumeFrame = 0;
+      video.addEventListener("pause", () => {
+        if (resumeFrame || document.hidden || !video.closest("[data-project-hero]")) return;
+        const heroRect = video.getBoundingClientRect();
+        if (heroRect.bottom <= 0 || heroRect.top >= window.innerHeight) return;
+        resumeFrame = requestAnimationFrame(() => {
+          resumeFrame = 0;
+          if (!document.hidden && video.closest("[data-project-hero]")) video.play().catch(() => {});
+        });
+      });
+      flight.className = "project-flight project-flight--live";
+      Object.assign(flight.style, {
+        top: `${rect.top}px`, left: `${rect.left}px`,
+        width: `${rect.width}px`, height: `${rect.height}px`
+      });
+
+      // Reparent the playing element; cloning it starts another decoder and drops frames.
+      holdCurrentFrame();
+      video.className = "project-flight-media";
+      video.style.animation = "none";
+      video.style.transition = "none";
+      video.style.opacity = "1";
+      video.style.transform = startingTransform === "none" ? "none" : startingTransform;
+      flight.append(video);
+      body.append(flight);
+      visual.classList.add("is-flight-source");
+      body.classList.add("is-project-transitioning-live");
+      video.play().catch(() => {});
+
+      try {
+        const duration = 1050;
+        const easing = "cubic-bezier(.76,0,.24,1)";
+        const expansion = flight.animate([
+          { top: `${rect.top}px`, left: `${rect.left}px`, width: `${rect.width}px`, height: `${rect.height}px` },
+          { top: "0px", left: "0px", width: `${window.innerWidth}px`, height: `${window.innerHeight}px` }
+        ], { duration, easing, fill: "forwards" });
+        video.animate([
+          { transform: startingTransform === "none" ? "none" : startingTransform },
+          { transform: "none" }
+        ], { duration, easing, fill: "forwards" });
+
+        await expansion.finished;
+        const page = await pagePromise;
+        const incomingMain = page.querySelector("main");
+        const incomingVideo = incomingMain?.querySelector("[data-project-hero] video");
+        if (!incomingMain || !incomingVideo) throw new Error("K33P hero missing");
+
+        document.querySelector("main")?.replaceWith(document.importNode(incomingMain, true));
+        const heroMedia = document.querySelector("[data-project-hero]");
+        document.querySelector(".project-cursor")?.remove();
+        caseEntryReady = false;
+        body.className = "case-page k33p-case is-case-entering";
+        body.style.setProperty("--case-dim", "0");
+        body.style.setProperty("--case-copy", "0");
+        body.style.setProperty("--case-copy-y", "48px");
+        document.title = page.title;
+        for (const selector of ["meta[name='description']", "meta[property='og:title']", "meta[property='og:description']", "meta[property='og:type']", "meta[property='og:url']", "meta[property='og:image']", "meta[name='twitter:card']", "meta[name='twitter:title']", "meta[name='twitter:description']", "meta[name='theme-color']", "link[rel='canonical']"]) {
+          const current = document.head.querySelector(selector);
+          const incoming = page.head.querySelector(selector);
+          if (incoming) {
+            const replacement = document.importNode(incoming, true);
+            if (current) current.replaceWith(replacement);
+            else document.head.append(replacement);
+          }
+        }
+        const logo = document.querySelector(".logo-img");
+        if (logo) logo.src = new URL("/images/brand/logo-light.svg", location.origin).href;
+        document.querySelector("nav a[href='#work']")?.setAttribute("href", "/#work");
+        const localPreview = ["127.0.0.1", "localhost"].includes(location.hostname);
+        const destination = localPreview ? `${new URL(link.href).pathname}.html` : link.href;
+        history.pushState({ project: "k33p" }, "", destination);
+        const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, 0);
+        document.documentElement.style.scrollBehavior = previousScrollBehavior;
+
+        // Keep the last painted frame over the hero while the live video changes
+        // compositor layers. Removing the flight immediately can expose one blank frame.
+        holdCurrentFrame();
+        video.className = "is-continuous-video";
+        video.removeAttribute("style");
+        video.setAttribute("aria-label", "K33P product and identity film");
+        video.removeAttribute("aria-hidden");
+        video.autoplay = true;
+        heroMedia.replaceChildren(video);
+        video.play().catch(() => {});
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          flight.animate([{ opacity: 1 }, { opacity: 0 }], {
+            duration: 160, easing: "ease-out", fill: "forwards"
+          }).finished.finally(() => flight.remove());
+        }));
+        initialiseReveals();
+        initialiseMediaLoading();
+        initialiseProjectCursor();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          // Wait until the new document has settled at the top before allowing
+          // its scroll-driven headline to become visible.
+          if (window.scrollY !== 0) {
+            const scrollBehavior = document.documentElement.style.scrollBehavior;
+            document.documentElement.style.scrollBehavior = "auto";
+            window.scrollTo(0, 0);
+            document.documentElement.style.scrollBehavior = scrollBehavior;
+          }
+          caseEntryReady = true;
+          updateScrollState();
+        }));
+        window.addEventListener("popstate", () => window.location.reload(), { once: true });
+      } catch (_) {
+        window.location.assign(link.href);
+      }
+    };
+
     document.querySelectorAll(".project-link").forEach(link => {
       const visual = link.querySelector(".project-visual");
       const video = visual?.querySelector("video");
-      const play = () => video?.play().catch(() => {});
-      const pause = () => video?.pause();
+      const continuousK33P = Boolean(video && new URL(link.href).pathname.replace(/\/$/, "") === "/work/k33p");
+      let prefetchedPage;
+      const preparePage = () => {
+        if (continuousK33P && !prefetchedPage) prefetchedPage = fetchK33PPage(link).catch(() => null);
+      };
+      const play = () => {
+        video?.play().catch(() => {});
+        preparePage();
+      };
+      const pause = () => {
+        if (video?.closest(".project-visual") === visual) video.pause();
+      };
       link.addEventListener("mouseenter", play);
       link.addEventListener("focus", play);
       link.addEventListener("mouseleave", pause);
@@ -186,6 +363,38 @@ document.addEventListener("DOMContentLoaded", () => {
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const finePointer = window.matchMedia("(pointer: fine)").matches;
         if (modified || reducedMotion || !finePointer || !visual) return;
+        if (body.classList.contains("is-project-transitioning-live")) return;
+        if (continuousK33P) {
+          event.preventDefault();
+          preparePage();
+          if (video.readyState >= 2) {
+            openK33PWithLiveVideo(link, visual, video, prefetchedPage);
+          } else {
+            let settled = false;
+            const cleanup = () => {
+              clearTimeout(fallbackTimer);
+              video.removeEventListener("loadeddata", startWhenReady);
+              video.removeEventListener("error", useNormalNavigation);
+            };
+            const startWhenReady = () => {
+              if (settled) return;
+              settled = true;
+              cleanup();
+              openK33PWithLiveVideo(link, visual, video, prefetchedPage);
+            };
+            const useNormalNavigation = () => {
+              if (settled) return;
+              settled = true;
+              cleanup();
+              window.location.assign(link.href);
+            };
+            const fallbackTimer = window.setTimeout(useNormalNavigation, 2500);
+            video.addEventListener("loadeddata", startWhenReady, { once: true });
+            video.addEventListener("error", useNormalNavigation, { once: true });
+            video.play().catch(() => {});
+          }
+          return;
+        }
         event.preventDefault();
 
         const source = visual.querySelector(".project-motion") || visual.querySelector(".project-still") || visual.querySelector("img, video");
@@ -345,9 +554,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-        if (!entry.isIntersecting) entry.target.pause();
+        const rect = entry.target.getBoundingClientRect();
+        const visibleNow = rect.bottom > 0 && rect.top < window.innerHeight;
+        if (entry.isIntersecting || visibleNow) {
+          if (entry.target.autoplay && !document.hidden) entry.target.play().catch(() => {});
+        } else if (!entry.target.closest(".project-flight")) {
+          entry.target.pause();
+        }
       }), { threshold: 0.05 });
-      videos.forEach(video => observer.observe(video));
+      // Card previews are already managed by hover/focus. Observing them here
+      // can dispatch a stale offscreen pause after one moves into a case hero.
+      videos.filter(video => !video.closest(".project-visual")).forEach(video => observer.observe(video));
     }
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) videos.forEach(video => video.pause());
