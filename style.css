@@ -210,7 +210,7 @@ nav{isolation:isolate}
 .luxmirae-case .case-sheet,.luxmirae-case .immersive-copy p{font-family:var(--lux-body)}
 .luxmirae-case .immersive-copy h1,.luxmirae-case .case-overview h2,.luxmirae-case .case-context h2,.luxmirae-case .case-description-lead{font-family:var(--lux-display);font-weight:400;letter-spacing:.015em}
 .luxmirae-case .immersive-hero{background:#102a23}
-.luxmirae-case .immersive-media video{object-position:center}
+.luxmirae-case .immersive-media video{animation:none;object-fit:contain;object-position:center;transform:none}
 .lux-logo-panel{aspect-ratio:3/2;background:#102a23;margin:clamp(24px,4vw,64px);overflow:hidden}
 .lux-logo-panel img{height:100%;object-fit:contain;width:100%}
 .lux-foundations{background:#102a23;color:#f5ead8;display:grid;gap:1px;grid-template-columns:1.2fr 1fr;padding:clamp(24px,4vw,64px)}
@@ -233,12 +233,16 @@ nav{isolation:isolate}
 .lux-brand-portrait{aspect-ratio:3/4;height:auto;margin-left:auto;margin-right:auto;max-width:900px}.lux-brand-portrait img{object-fit:contain;object-position:center}
 .lux-packaging-pair .editorial-media{aspect-ratio:16/9;min-height:0}
 .lux-packaging-pair .editorial-media img{object-fit:contain;object-position:center}
+.lux-handbag-motion{background:#102a23;overflow:hidden}
+.lux-handbag-motion video{height:100%;object-fit:cover;width:100%}
+.lux-handbag-motion--portrait{aspect-ratio:9/16;margin:0 auto clamp(24px,4vw,64px);max-width:min(620px,calc(100% - 48px))}
+.lux-handbag-motion--wide{aspect-ratio:16/9;margin:0 clamp(24px,4vw,64px) clamp(24px,4vw,64px)}
 .lux-motion-film{aspect-ratio:16/9;background:#102a23;margin:0 clamp(24px,4vw,64px) clamp(24px,4vw,64px);overflow:hidden}
 .lux-motion-film video{height:100%;object-fit:cover;width:100%}
 .lux-detail-pair{display:grid;gap:clamp(8px,1vw,16px);grid-template-columns:1fr 1fr;padding:0 clamp(24px,4vw,64px) clamp(24px,4vw,64px)}
 .lux-detail-pair figure{aspect-ratio:3/4}.lux-detail-pair img{object-fit:contain}
 
-@media(max-width:820px){.lux-foundations{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.lux-campaign-grid,.lux-product-grid{padding-left:18px;padding-right:18px}.lux-logo-panel,.lux-motion-film{margin-left:18px;margin-right:18px}.lux-detail-pair{padding-left:18px;padding-right:18px}}
+@media(max-width:820px){.lux-foundations{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.lux-campaign-grid,.lux-product-grid{padding-left:18px;padding-right:18px}.lux-logo-panel,.lux-handbag-motion--wide,.lux-motion-film{margin-left:18px;margin-right:18px}.lux-handbag-motion--portrait{max-width:min(620px,calc(100% - 36px))}.lux-detail-pair{padding-left:18px;padding-right:18px}}
 @media(max-width:620px){.lux-colour-board{grid-template-columns:1fr 1fr;min-height:440px}.lux-swatch--green{grid-column:1/-1}.lux-type-board{min-height:430px}.lux-campaign-grid,.lux-product-grid{grid-template-columns:1fr}.lux-campaign-grid figure{aspect-ratio:9/16}.lux-product-grid figure{aspect-ratio:4/5}.lux-brand-portrait{height:auto;aspect-ratio:3/4}.lux-motion-film{aspect-ratio:4/5}.lux-detail-pair{grid-template-columns:1fr}.lux-detail-pair figure{aspect-ratio:3/4}}
 
 /* Mobile About hero: compact image-to-content blend */
