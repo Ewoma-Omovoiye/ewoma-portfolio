@@ -193,7 +193,22 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const initialiseProjectPreviews = () => {
-    const fetchK33PPage = async link => {
+    const continuousCases = {
+      k33p: {
+        bodyClass: "k33p-case",
+        heroLabel: "K33P product and identity film"
+      },
+      dietbloom: {
+        bodyClass: "dietbloom-case",
+        heroLabel: "DietBloom app marketing film"
+      },
+      luxmirae: {
+        bodyClass: "luxmirae-case",
+        heroLabel: "Luxmirae logo animation"
+      }
+    };
+
+    const fetchContinuousCasePage = async (link, config) => {
       const cleanURL = new URL(link.href);
       const urls = [cleanURL.href, `${cleanURL.origin}${cleanURL.pathname}.html`];
       for (const url of urls) {
@@ -201,32 +216,35 @@ document.addEventListener("DOMContentLoaded", () => {
           const response = await fetch(url, { credentials: "same-origin" });
           if (!response.ok) continue;
           const page = new DOMParser().parseFromString(await response.text(), "text/html");
-          if (page.body.classList.contains("k33p-case") && page.querySelector("[data-project-hero] video")) return page;
+          if (page.body.classList.contains(config.bodyClass) && page.querySelector("[data-project-hero] video")) return page;
         } catch (_) {
           // The normal link remains the fallback when the page cannot be fetched.
         }
       }
-      throw new Error("K33P page unavailable for the continuous transition");
+      throw new Error("Case study unavailable for the continuous transition");
     };
 
-    const openK33PWithLiveVideo = async (link, visual, video, pagePromise) => {
+    const waitForPaintedVideoFrame = (video, timeout = 650) => new Promise(resolve => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve();
+      };
+      const timer = window.setTimeout(finish, timeout);
+      video.play().catch(() => {});
+      if (typeof video.requestVideoFrameCallback === "function") {
+        video.requestVideoFrameCallback(finish);
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(finish));
+      }
+    });
+
+    const openCaseWithLiveVideo = async (link, visual, video, pagePromise, slug, config) => {
       const rect = visual.getBoundingClientRect();
       const flight = document.createElement("div");
       const startingTransform = getComputedStyle(video).transform;
-      const holdCurrentFrame = () => {
-        try {
-          if (!video.videoWidth || !video.videoHeight) return;
-          const frame = document.createElement("canvas");
-          frame.width = Math.min(video.videoWidth, 1280);
-          frame.height = Math.round(frame.width * video.videoHeight / video.videoWidth);
-          frame.getContext("2d").drawImage(video, 0, 0, frame.width, frame.height);
-          flight.style.backgroundImage = `url("${frame.toDataURL("image/jpeg", 0.88)}")`;
-          flight.style.backgroundPosition = "center";
-          flight.style.backgroundSize = "cover";
-        } catch (_) {
-          // A video frame is only a visual bridge; the live video still works without it.
-        }
-      };
       let resumeFrame = 0;
       video.addEventListener("pause", () => {
         if (resumeFrame || document.hidden || !video.closest("[data-project-hero]")) return;
@@ -243,8 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         width: `${rect.width}px`, height: `${rect.height}px`
       });
 
-      // Reparent the playing element; cloning it starts another decoder and drops frames.
-      holdCurrentFrame();
+      // Keep one decoder and one painted video element throughout the transition.
       video.className = "project-flight-media";
       video.style.animation = "none";
       video.style.transition = "none";
@@ -263,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { top: `${rect.top}px`, left: `${rect.left}px`, width: `${rect.width}px`, height: `${rect.height}px` },
           { top: "0px", left: "0px", width: `${window.innerWidth}px`, height: `${window.innerHeight}px` }
         ], { duration, easing, fill: "forwards" });
-        video.animate([
+        const videoExpansion = video.animate([
           { transform: startingTransform === "none" ? "none" : startingTransform },
           { transform: "none" }
         ], { duration, easing, fill: "forwards" });
@@ -272,13 +289,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const page = await pagePromise;
         const incomingMain = page.querySelector("main");
         const incomingVideo = incomingMain?.querySelector("[data-project-hero] video");
-        if (!incomingMain || !incomingVideo) throw new Error("K33P hero missing");
+        if (!incomingMain || !incomingVideo) throw new Error("Case-study hero missing");
 
         document.querySelector("main")?.replaceWith(document.importNode(incomingMain, true));
         const heroMedia = document.querySelector("[data-project-hero]");
+        heroMedia.replaceWith(flight);
+        flight.setAttribute("data-project-hero", "");
         document.querySelector(".project-cursor")?.remove();
         caseEntryReady = false;
-        body.className = "case-page k33p-case is-case-entering";
+        body.className = `case-page ${config.bodyClass} is-case-entering`;
         body.style.setProperty("--case-dim", "0");
         body.style.setProperty("--case-copy", "0");
         body.style.setProperty("--case-copy-y", "48px");
@@ -297,27 +316,27 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("nav a[href='#work']")?.setAttribute("href", "/#work");
         const localPreview = ["127.0.0.1", "localhost"].includes(location.hostname);
         const destination = localPreview ? `${new URL(link.href).pathname}.html` : link.href;
-        history.pushState({ project: "k33p" }, "", destination);
+        history.pushState({ project: slug }, "", destination);
         const previousScrollBehavior = document.documentElement.style.scrollBehavior;
         document.documentElement.style.scrollBehavior = "auto";
         window.scrollTo(0, 0);
         document.documentElement.style.scrollBehavior = previousScrollBehavior;
 
-        // Keep the last painted frame over the hero while the live video changes
-        // compositor layers. Removing the flight immediately can expose one blank frame.
-        holdCurrentFrame();
-        video.className = "is-continuous-video";
+        video.className = "project-flight-media is-continuous-video";
         video.removeAttribute("style");
-        video.setAttribute("aria-label", "K33P product and identity film");
+        video.removeAttribute("poster");
+        video.setAttribute("aria-label", incomingVideo.getAttribute("aria-label") || config.heroLabel);
         video.removeAttribute("aria-hidden");
         video.autoplay = true;
-        heroMedia.replaceChildren(video);
-        video.play().catch(() => {});
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          flight.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 160, easing: "ease-out", fill: "forwards"
-          }).finished.finally(() => flight.remove());
-        }));
+        Object.assign(flight.style, {
+          top: "0px", left: "0px", width: `${window.innerWidth}px`, height: `${window.innerHeight}px`
+        });
+        expansion.cancel();
+        videoExpansion.cancel();
+        await waitForPaintedVideoFrame(video);
+        flight.className = "immersive-media";
+        flight.removeAttribute("style");
+        video.className = "is-continuous-video";
         initialiseReveals();
         initialiseMediaLoading();
         initialiseProjectCursor();
@@ -342,10 +361,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".project-link").forEach(link => {
       const visual = link.querySelector(".project-visual");
       const video = visual?.querySelector("video");
-      const continuousK33P = Boolean(video && new URL(link.href).pathname.replace(/\/$/, "") === "/work/k33p");
+      const slug = new URL(link.href).pathname.replace(/\/$/, "").split("/").pop();
+      const continuousCase = video ? continuousCases[slug] : null;
       let prefetchedPage;
       const preparePage = () => {
-        if (continuousK33P && !prefetchedPage) prefetchedPage = fetchK33PPage(link).catch(() => null);
+        if (continuousCase && !prefetchedPage) prefetchedPage = fetchContinuousCasePage(link, continuousCase).catch(() => null);
       };
       const play = () => {
         video?.play().catch(() => {});
@@ -362,13 +382,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const modified = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const finePointer = window.matchMedia("(pointer: fine)").matches;
-        if (modified || reducedMotion || !finePointer || !visual) return;
+        if (modified || reducedMotion || !visual) return;
         if (body.classList.contains("is-project-transitioning-live")) return;
-        if (continuousK33P) {
+        if (continuousCase) {
           event.preventDefault();
           preparePage();
+          const beginTransition = () => {
+            waitForPaintedVideoFrame(video).then(() => {
+              openCaseWithLiveVideo(link, visual, video, prefetchedPage, slug, continuousCase);
+            });
+          };
           if (video.readyState >= 2) {
-            openK33PWithLiveVideo(link, visual, video, prefetchedPage);
+            beginTransition();
           } else {
             let settled = false;
             const cleanup = () => {
@@ -380,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
               if (settled) return;
               settled = true;
               cleanup();
-              openK33PWithLiveVideo(link, visual, video, prefetchedPage);
+              beginTransition();
             };
             const useNormalNavigation = () => {
               if (settled) return;
@@ -395,9 +420,10 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           return;
         }
+        if (!finePointer) return;
         event.preventDefault();
 
-        const source = visual.querySelector(".project-motion") || visual.querySelector(".project-still") || visual.querySelector("img, video");
+        const source = visual.querySelector(".project-motion:not(video)") || visual.querySelector(".project-still") || visual.querySelector("img");
         if (!source || body.classList.contains("is-project-transitioning")) {
           window.location.assign(link.href);
           return;
@@ -573,7 +599,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const initialiseProjectCursor = () => {
     const allowed = window.matchMedia("(pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const targets = [...document.querySelectorAll(".project-link, .next-project-card")];
+    const targets = [...document.querySelectorAll(".project-link, .next-project-card, .case-project-link")];
     if (!allowed || !targets.length) return;
     const cursor = document.createElement("div");
     cursor.className = "project-cursor";
@@ -605,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
     targets.forEach(target => {
       target.classList.add("cursor-target");
       target.addEventListener("pointerenter", () => {
-        cursor.textContent = target.classList.contains("next-project-card") ? "Next" : "View";
+        cursor.textContent = target.dataset.cursorLabel || (target.classList.contains("next-project-card") ? "Next" : "View");
         cursor.classList.add("is-visible");
         requestCursorDraw();
       });
