@@ -26,6 +26,8 @@ nav{isolation:isolate}
 .project-visual .project-still,.project-visual .project-motion{inset:0;position:absolute}
 .project-visual .project-still{opacity:1;transition:opacity .3s ease}
 .project-visual .project-motion{opacity:0;transform:scale(1.03);transition:opacity .3s ease}
+.project-visual--dietbloom{background:#fde8ec}
+.project-visual--dietbloom .project-still{object-fit:contain;padding:clamp(44px,6vw,88px)}
 .project-card:hover .project-still,.project-card:focus-within .project-still{opacity:0}
 .project-card:hover .project-motion,.project-card:focus-within .project-motion{animation:project-preview-motion 5.5s ease-in-out infinite alternate;opacity:1}
 @keyframes project-preview-motion{from{filter:saturate(.9);transform:scale(1.04) translate3d(-1.2%,0,0)}to{filter:saturate(1.15);transform:scale(1.12) translate3d(1.5%,-1%,0)}}
@@ -206,6 +208,7 @@ nav{isolation:isolate}
 
 /* Luxmirae case study */
 .next-project-card--luxmirae{background:#102a23}.next-project-card--luxmirae::after{border-color:rgba(184,151,85,.58)}.next-project-card--luxmirae span,.next-project-card--luxmirae em{color:#b89755}.next-project-card--k33p{background:#1a1a1a}.next-project-card--k33p::after{border-color:rgba(255,217,57,.62)}.next-project-card--k33p span,.next-project-card--k33p em{color:#ffd939}.next-project-card--procindex{background:#08150f}.next-project-card--procindex::after{border-color:rgba(0,165,80,.55)}.next-project-card--procindex span,.next-project-card--procindex em{color:#00a550}.next-project-card--brail{background:#0a0a0a}.next-project-card--brail::after{border-color:rgba(249,115,22,.58)}.next-project-card--brail span,.next-project-card--brail em{color:#f97316}.next-project-card--bento{background:#0a0a0a}.next-project-card--bento::after{border-color:rgba(220,38,38,.55)}.next-project-card--bento span,.next-project-card--bento em{color:#dc2626}
+.next-project-card--dietbloom{background:#ff3154}.next-project-card--dietbloom::after{border-color:rgba(255,255,255,.58)}
 .luxmirae-case{--lux-display:"Engravers Gothic","EngraversGothic BT",var(--display);--lux-body:Gotham,"Gotham SSm",Avenir,"Avenir Next",var(--body)}
 .luxmirae-case .case-sheet,.luxmirae-case .immersive-copy p{font-family:var(--lux-body)}
 .luxmirae-case .immersive-copy h1,.luxmirae-case .case-overview h2,.luxmirae-case .case-context h2,.luxmirae-case .case-description-lead{font-family:var(--lux-display);font-weight:400;letter-spacing:.015em}
@@ -244,6 +247,30 @@ nav{isolation:isolate}
 
 @media(max-width:820px){.lux-foundations{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.lux-campaign-grid,.lux-product-grid{padding-left:18px;padding-right:18px}.lux-logo-panel,.lux-handbag-motion--wide,.lux-motion-film{margin-left:18px;margin-right:18px}.lux-handbag-motion--portrait{max-width:min(620px,calc(100% - 36px))}.lux-detail-pair{padding-left:18px;padding-right:18px}}
 @media(max-width:620px){.lux-colour-board{grid-template-columns:1fr 1fr;min-height:440px}.lux-swatch--green{grid-column:1/-1}.lux-type-board{min-height:430px}.lux-campaign-grid,.lux-product-grid{grid-template-columns:1fr}.lux-campaign-grid figure{aspect-ratio:9/16}.lux-product-grid figure{aspect-ratio:4/5}.lux-brand-portrait{height:auto;aspect-ratio:3/4}.lux-motion-film{aspect-ratio:4/5}.lux-detail-pair{grid-template-columns:1fr}.lux-detail-pair figure{aspect-ratio:3/4}}
+
+/* DietBloom case study */
+.dietbloom-case{--diet-coral:#ff3154;--diet-blush:#fde8ec;--diet-ink:#11110f}
+.dietbloom-case .case-sheet,.dietbloom-case .immersive-copy{font-family:"Montserrat",var(--body)}
+.dietbloom-case .immersive-copy h1,.dietbloom-case .case-overview h2,.dietbloom-case .case-context h2,.dietbloom-case .case-description-lead{font-family:"Montserrat",var(--display);font-weight:700;letter-spacing:-.045em}
+.dietbloom-case .immersive-hero{background:var(--diet-blush)}
+.dietbloom-case .immersive-media video{object-position:center}
+.diet-logo-board{align-items:center;background:var(--diet-blush);display:flex;justify-content:center;margin:clamp(24px,4vw,64px);min-height:clamp(430px,52vw,720px);overflow:hidden;padding:clamp(36px,6vw,90px);text-align:center}
+.diet-logo-board img{height:auto;max-width:min(620px,72%);width:100%}
+.diet-foundations{background:var(--diet-ink);display:grid;gap:1px;grid-template-columns:1.15fr .85fr;padding:clamp(24px,4vw,64px)}
+.diet-colour-board{display:grid;grid-template-columns:1.2fr .8fr .7fr;min-height:clamp(400px,47vw,680px)}
+.diet-swatch{display:flex;flex-direction:column;font-family:"Montserrat",var(--body);justify-content:space-between;padding:clamp(18px,2.4vw,34px)}
+.diet-swatch span{font-size:clamp(24px,2.8vw,44px);font-weight:700;letter-spacing:-.04em}.diet-swatch small{font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.diet-swatch--coral{background:var(--diet-coral);color:#fff}.diet-swatch--blush{background:var(--diet-blush);color:var(--diet-ink)}.diet-swatch--ink{border:1px solid rgba(255,255,255,.18);color:#fff}
+.diet-type-board{background:#fff;color:var(--diet-ink);display:flex;flex-direction:column;font-family:"Montserrat",var(--body);justify-content:space-between;min-height:clamp(400px,47vw,680px);padding:clamp(28px,4vw,60px)}
+.diet-type-board>span{font-size:clamp(32px,4.2vw,68px);font-weight:700;letter-spacing:-.055em}.diet-type-board>p{font-size:clamp(25px,3.4vw,50px);font-weight:400;letter-spacing:-.055em;line-height:1.02}.diet-type-board>p strong{color:var(--diet-coral);font-weight:800}.diet-type-board>small{font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.diet-campaign-grid{display:grid;gap:clamp(8px,1vw,16px);grid-template-columns:repeat(3,minmax(0,1fr));padding:clamp(24px,4vw,64px)}
+.diet-campaign-grid figure,.diet-app-pair figure,.diet-community-pair figure{background:var(--diet-blush);overflow:hidden}
+.diet-campaign-grid figure{aspect-ratio:4/5}.diet-campaign-grid img,.diet-app-pair img,.diet-community-pair img{height:100%;object-fit:contain;width:100%}
+.diet-app-pair,.diet-community-pair{display:grid;gap:clamp(8px,1vw,16px);grid-template-columns:1fr 1fr;padding:0 clamp(24px,4vw,64px) clamp(24px,4vw,64px)}
+.diet-app-pair figure{aspect-ratio:4/5}.diet-community-pair figure{aspect-ratio:4/5}
+.diet-rollup{aspect-ratio:4/3;background:#eef3f6;margin:0 clamp(24px,4vw,64px) clamp(24px,4vw,64px);overflow:hidden}.diet-rollup img{height:100%;object-fit:contain;width:100%}
+@media(max-width:820px){.diet-logo-board,.diet-rollup{margin-left:18px;margin-right:18px}.diet-foundations{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.diet-campaign-grid,.diet-app-pair,.diet-community-pair{padding-left:18px;padding-right:18px}}
+@media(max-width:620px){.dietbloom-case .immersive-media video{animation:none;object-fit:contain;transform:none}.diet-logo-board{min-height:420px}.diet-colour-board{grid-template-columns:1fr 1fr;min-height:470px}.diet-swatch--coral{grid-column:1/-1}.diet-type-board{min-height:440px}.diet-campaign-grid,.diet-app-pair,.diet-community-pair{grid-template-columns:1fr}.diet-campaign-grid figure,.diet-app-pair figure,.diet-community-pair figure{aspect-ratio:4/5}.diet-rollup{aspect-ratio:4/3}}
 
 /* Mobile About hero: compact image-to-content blend */
 @media(max-width:820px){
