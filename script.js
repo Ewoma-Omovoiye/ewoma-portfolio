@@ -205,6 +205,10 @@ document.addEventListener("DOMContentLoaded", () => {
       luxmirae: {
         bodyClass: "luxmirae-case",
         heroLabel: "Luxmirae logo animation"
+      },
+      brail: {
+        bodyClass: "brail-case",
+        heroLabel: "Animated Brail directional symbol"
       }
     };
 
