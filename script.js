@@ -343,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         video.className = "is-continuous-video";
         initialiseReveals();
         initialiseMediaLoading();
+        initialiseDeckViewers();
         initialiseProjectCursor();
         requestAnimationFrame(() => requestAnimationFrame(() => {
           // Wait until the new document has settled at the top before allowing
@@ -565,6 +566,72 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const initialiseDeckViewers = () => {
+    document.querySelectorAll("[data-deck-viewer]").forEach(viewer => {
+      if (viewer.dataset.deckReady === "true") return;
+      viewer.dataset.deckReady = "true";
+      const stage = viewer.querySelector("[data-deck-stage]");
+      const slides = [...viewer.querySelectorAll("[data-deck-slide]")];
+      const strip = viewer.querySelector(".case-deck-strip");
+      const current = viewer.querySelector("[data-deck-current]");
+      const previous = viewer.querySelector("[data-deck-prev]");
+      const next = viewer.querySelector("[data-deck-next]");
+      const fullscreen = viewer.querySelector("[data-deck-fullscreen]");
+      if (!stage || !slides.length) return;
+      let activeIndex = Math.max(0, slides.findIndex(slide => slide.classList.contains("is-active")));
+      let pointerStartX = 0;
+
+      const preload = index => {
+        const slide = slides[(index + slides.length) % slides.length];
+        if (!slide?.dataset.src) return;
+        const image = new Image();
+        image.src = slide.dataset.src;
+      };
+      const show = (index, moveFocus = false) => {
+        activeIndex = (index + slides.length) % slides.length;
+        const active = slides[activeIndex];
+        stage.src = active.dataset.src;
+        stage.alt = active.dataset.label || `Pitch deck slide ${activeIndex + 1}`;
+        if (current) current.textContent = String(activeIndex + 1).padStart(2, "0");
+        slides.forEach((slide, slideIndex) => {
+          const selected = slideIndex === activeIndex;
+          slide.classList.toggle("is-active", selected);
+          if (selected) slide.setAttribute("aria-current", "true");
+          else slide.removeAttribute("aria-current");
+        });
+        if (strip) strip.scrollTo({ left: active.offsetLeft - (strip.clientWidth - active.clientWidth) / 2, behavior: "smooth" });
+        if (moveFocus) active.focus({ preventScroll: true });
+        preload(activeIndex - 1);
+        preload(activeIndex + 1);
+      };
+
+      slides.forEach((slide, index) => slide.addEventListener("click", () => show(index)));
+      previous?.addEventListener("click", () => show(activeIndex - 1));
+      next?.addEventListener("click", () => show(activeIndex + 1));
+      viewer.addEventListener("keydown", event => {
+        if (event.key === "ArrowLeft") { event.preventDefault(); show(activeIndex - 1); }
+        if (event.key === "ArrowRight") { event.preventDefault(); show(activeIndex + 1); }
+        if (event.key === "Home") { event.preventDefault(); show(0); }
+        if (event.key === "End") { event.preventDefault(); show(slides.length - 1); }
+      });
+      stage.addEventListener("pointerdown", event => { pointerStartX = event.clientX; });
+      stage.addEventListener("pointerup", event => {
+        const distance = event.clientX - pointerStartX;
+        if (Math.abs(distance) < 45) return;
+        show(activeIndex + (distance < 0 ? 1 : -1));
+      });
+      if (!document.fullscreenEnabled) fullscreen?.remove();
+      else fullscreen?.addEventListener("click", () => {
+        if (document.fullscreenElement === viewer) document.exitFullscreen();
+        else viewer.requestFullscreen();
+      });
+      document.addEventListener("fullscreenchange", () => {
+        if (fullscreen) fullscreen.textContent = document.fullscreenElement === viewer ? "Exit full screen" : "Full screen";
+      });
+      preload(activeIndex + 1);
+    });
+  };
+
   const initialiseManagedVideos = () => {
     const videos = [...document.querySelectorAll("video")];
     if (!videos.length) return;
@@ -661,6 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initialiseProjectPreviews();
   initialiseSharedMotion();
   initialiseMediaLoading();
+  initialiseDeckViewers();
   initialiseManagedVideos();
   initialiseProjectCursor();
   updateScrollState();
