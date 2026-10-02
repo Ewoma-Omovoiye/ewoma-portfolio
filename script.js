@@ -502,7 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const initialiseSharedMotion = () => {
     const targets = [
-      ...document.querySelectorAll(".home-hero h1, .section-head, .home-profile p, .home-profile-link, .about-biography-new > div, .about-capabilities-new h2, .about-capability-grid p, .about-experience-new > h2, .experience-list article, .resume-link, footer .footer-top, footer .footer-bottom, .error-copy")
+      ...document.querySelectorAll(".home-hero h1, .section-head, .home-profile p, .home-profile-link, .about-biography-new > div, .about-capabilities-new h2, .about-capability-grid p, .about-experience-new > h2, .experience-list article, .resume-link, .error-copy")
     ];
     if (!targets.length) return;
     targets.forEach((target, index) => {

@@ -119,6 +119,7 @@ nav{isolation:isolate}
 /* Shared motion and interaction system */
 .site-reveal{opacity:0;transform:translateY(24px);transition:opacity .62s ease var(--reveal-delay,0ms),transform .78s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
 .site-reveal.is-visible{opacity:1;transform:translateY(0)}
+footer .site-reveal{opacity:1;transform:none}
 .site-reveal.is-visible.project-card:hover,.site-reveal.is-visible.project-card:focus-within{transform:translateY(-4px)}
 .project-grid:has(.project-card:hover) .site-reveal.is-visible.project-card:not(:hover),.project-grid:has(.project-card:focus-within) .site-reveal.is-visible.project-card:not(:focus-within){opacity:.24}
 .home-profile-link,.resume-link,.social-links a{transition:color .22s ease,opacity .22s ease}
